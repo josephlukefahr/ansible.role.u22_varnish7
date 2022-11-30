@@ -7,27 +7,31 @@
   ansible.builtin.apt_repository:
     repo: "deb [signed-by=/etc/apt/trusted.gpg.d/varnish70.asc] https://packagecloud.io/varnishcache/varnish70/ubuntu focal main"
     state: present
-- name: varnish 7.0 installed
+- name: varnish 7 installed
   ansible.builtin.apt:
-    name: varnish=7.0*
+    name: varnish={{u22_varnish7_version}}
     state: present
+- name: varnish systemd spec in place
+  notify:
+    - systemd reload
+    - varnish restart
+  ansible.builtin.template:
+    src: varnish.service
+    dest: /lib/systemd/system
+    owner: root
+    group: root
+    mode: '0644'
+- name: varnish config in place
+  notify:
+    - varnish restart
+  ansible.builtin.template:
+    src: default.vcl
+    dest: /etc/varnish
+    owner: root
+    group: root
+    mode: '0644'
 - name: varnish service enabled
   ansible.builtin.service:
     name: varnish
     state: started
     enabled: yes
-- name: varnish systemd spec reset
-  notify:
-    - systemd reload
-    - varnish restart
-  ansible.builtin.copy:
-    src: varnish.service
-    dest: /lib/systemd/system
-    mode: '0644'
-- name: varnish config reset
-  notify:
-    - varnish restart
-  ansible.builtin.copy:
-    src: default.vcl
-    dest: /etc/varnish
-    mode: '0644'
