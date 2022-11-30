@@ -1,0 +1,33 @@
+---
+- name: varnish 7.0 code signing key in place
+  ansible.builtin.get_url:
+    url: https://packagecloud.io/varnishcache/varnish70/gpgkey
+    dest: /etc/apt/trusted.gpg.d/varnish70.asc
+- name: varnish apt repository registered
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/trusted.gpg.d/varnish70.asc] https://packagecloud.io/varnishcache/varnish70/ubuntu focal main"
+    state: present
+- name: varnish 7.0 installed
+  ansible.builtin.apt:
+    name: varnish=7.0*
+    state: present
+- name: varnish service enabled
+  ansible.builtin.service:
+    name: varnish
+    state: started
+    enabled: yes
+- name: varnish systemd spec reset
+  notify:
+    - systemd reload
+    - varnish restart
+  ansible.builtin.copy:
+    src: varnish.service
+    dest: /lib/systemd/system
+    mode: '0644'
+- name: varnish config reset
+  notify:
+    - varnish restart
+  ansible.builtin.copy:
+    src: default.vcl
+    dest: /etc/varnish
+    mode: '0644'
