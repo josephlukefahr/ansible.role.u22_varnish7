@@ -25,7 +25,7 @@ ExecStart=/usr/sbin/varnishd \
           -a :6081 \
           -p feature=+http2 \
           -f /etc/varnish/default.vcl \
-          -s malloc,1G
+          -s malloc,2G
 ExecReload=/usr/sbin/varnishreload
 
 [Install]
